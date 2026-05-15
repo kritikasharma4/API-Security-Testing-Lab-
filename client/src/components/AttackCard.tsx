@@ -15,6 +15,7 @@ const DESCRIPTIONS: Record<string, string> = {
   'SQL Injection': '3 classic injection payloads — tests input validation',
   'Rate Limit Bypass': 'Spoofs IP headers after hitting limit — tests trust config',
   'CORS Probe': 'Sends evil.com Origin header — tests CORS whitelist',
+  'Honeypot': 'Probes unprotected /api/secret — tests detection capability',
 };
 
 export function AttackCard({ name, status, result }: AttackCardProps) {
