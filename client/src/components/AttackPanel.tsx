@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Play, RotateCcw } from 'lucide-react';
 import { AttackCard } from './AttackCard';
-import { bruteForce, jwtTampering, sqlInjection, rateLimitBypass, corsProbe } from '../scenarios';
+import { bruteForce, jwtTampering, sqlInjection, rateLimitBypass, corsProbe, honeypot } from '../scenarios';
 import type { ScenarioResult, ScenarioFn } from '../scenarios/types';
 import { cn } from '../lib/utils';
 
@@ -11,6 +11,7 @@ const SCENARIOS: { fn: ScenarioFn; name: string }[] = [
   { fn: jwtTampering, name: 'JWT Tampering' },
   { fn: sqlInjection, name: 'SQL Injection' },
   { fn: corsProbe, name: 'CORS Probe' },
+  { fn: honeypot, name: 'Honeypot' },
   { fn: bruteForce, name: 'Brute Force' },
   { fn: rateLimitBypass, name: 'Rate Limit Bypass' },
 ];
@@ -22,7 +23,13 @@ interface CardState {
   result?: ScenarioResult;
 }
 
-export function AttackPanel() {
+interface AttackPanelProps {
+  onStart: () => void;
+  onComplete: (results: ScenarioResult[]) => void;
+  onReset: () => void;
+}
+
+export function AttackPanel({ onStart, onComplete, onReset }: AttackPanelProps) {
   const [cards, setCards] = useState<CardState[]>(SCENARIOS.map(() => ({ status: 'idle' })));
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -31,20 +38,25 @@ export function AttackPanel() {
     setRunning(true);
     setDone(false);
     setCards(SCENARIOS.map(() => ({ status: 'idle' })));
+    onStart();
 
+    const results: ScenarioResult[] = [];
     for (let i = 0; i < SCENARIOS.length; i++) {
       setCards(prev => prev.map((c, idx) => idx === i ? { status: 'running' } : c));
       const result = await SCENARIOS[i].fn(SERVER_URL);
+      results.push(result);
       setCards(prev => prev.map((c, idx) => idx === i ? { status: 'done', result } : c));
     }
 
     setRunning(false);
     setDone(true);
+    onComplete(results);
   }
 
   function reset() {
     setCards(SCENARIOS.map(() => ({ status: 'idle' })));
     setDone(false);
+    onReset();
   }
 
   const results = cards.filter(c => c.status === 'done' && c.result).map(c => c.result!);
