@@ -19,7 +19,7 @@ export async function jwtTampering(baseURL: string): Promise<ScenarioResult> {
     await fetch(`${baseURL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Attacker', email: 'attacker_fe@evil.com', password: 'attackpass123' }),
+      body: JSON.stringify({ name: 'Attacker', email: 'attacker_jwt@evil.com', password: 'attackpass123' }),
     });
   } catch {}
 
@@ -28,7 +28,7 @@ export async function jwtTampering(baseURL: string): Promise<ScenarioResult> {
     const res = await fetch(`${baseURL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'attacker_fe@evil.com', password: 'attackpass123' }),
+      body: JSON.stringify({ email: 'attacker_jwt@evil.com', password: 'attackpass123' }),
     });
     if (res.ok) {
       const data = await res.json();
