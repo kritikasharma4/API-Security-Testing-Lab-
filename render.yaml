@@ -9,6 +9,6 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: ALLOWED_ORIGIN
-        value: "*"
+        value: "https://client-mu-ashen-58.vercel.app"
       - key: NODE_ENV
         value: production
