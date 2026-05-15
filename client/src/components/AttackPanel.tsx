@@ -8,11 +8,11 @@ import { cn } from '../lib/utils';
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'https://api-security-testing-lab.onrender.com';
 
 const SCENARIOS: { fn: ScenarioFn; name: string }[] = [
-  { fn: bruteForce, name: 'Brute Force' },
   { fn: jwtTampering, name: 'JWT Tampering' },
   { fn: sqlInjection, name: 'SQL Injection' },
-  { fn: rateLimitBypass, name: 'Rate Limit Bypass' },
   { fn: corsProbe, name: 'CORS Probe' },
+  { fn: bruteForce, name: 'Brute Force' },
+  { fn: rateLimitBypass, name: 'Rate Limit Bypass' },
 ];
 
 type CardStatus = 'idle' | 'running' | 'done';
