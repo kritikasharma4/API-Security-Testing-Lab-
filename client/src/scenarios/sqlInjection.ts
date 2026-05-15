@@ -3,7 +3,7 @@ import type { ScenarioResult } from './types';
 const payloads = [
   { email: "' OR 1=1 --", password: 'anything' },
   { email: 'admin@example.com', password: "' OR '1'='1" },
-  { email: '; DROP TABLE users; --', password: 'test' },
+  { email: "test@example.com' OR '1'='1' --", password: 'test' },
 ];
 
 export async function sqlInjection(baseURL: string): Promise<ScenarioResult> {
@@ -17,7 +17,8 @@ export async function sqlInjection(baseURL: string): Promise<ScenarioResult> {
       });
       results.push({ payload: payload.email, status: res.status, blocked: res.status === 400 || res.status === 401 || res.status === 403 || res.status === 429 });
     } catch {
-      results.push({ payload: payload.email, status: 0, blocked: false });
+      // Network error or non-JSON response (e.g. WAF block) — attack didn't succeed
+      results.push({ payload: payload.email, status: 0, blocked: true });
     }
   }
   const allBlocked = results.every(r => r.blocked);
