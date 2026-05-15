@@ -18,7 +18,7 @@ The frontend runs six attack scenarios against the live server, one by one, and 
 | Scenario | What it does | Defense tested |
 |----------|-------------|----------------|
 | **JWT Tampering** | Gets a valid token, modifies the payload (escalates role to `superadmin`), re-signs with a fake signature | Signature verification rejects tampered tokens with 401 |
-| **SQL Injection** | Fires 3 classic injection payloads (`OR 1=1 --`, `DROP TABLE users`, etc.) at the login endpoint | Input validation blocks all malformed inputs before they reach the DB |
+| **SQL Injection** | Fires 3 injection payloads at the login endpoint — including one embedded inside a valid-looking email (`test@example.com' OR '1'='1' --`) that bypasses Render's edge WAF and reaches the app's own validator | Input validation (express-validator) rejects all payloads with 400 before they reach storage |
 | **CORS Probe** | Sends requests with `Origin: https://evil.com` | CORS whitelist only permits the known frontend origin |
 | **Honeypot** | Probes an unprotected-looking endpoint `/api/secret` | Server serves convincing fake credentials and logs the probe as an ALERT |
 | **Brute Force** | Makes 10 rapid login attempts against a real account | Login rate limiter triggers 429 after 5 attempts |
@@ -35,7 +35,7 @@ The frontend runs six attack scenarios against the live server, one by one, and 
 | Rate limiting | express-rate-limit (5 login / 100 global per 15min per IP) | Brute force, credential stuffing |
 | Security headers | helmet | Clickjacking (X-Frame-Options), MIME sniffing, XSS, enforces HTTPS |
 | CORS whitelist | cors (exact origin match, no wildcard) | Cross-origin requests from untrusted domains |
-| Input validation | express-validator (sanitize + length check all inputs) | SQL injection, malformed payloads |
+| Input validation | express-validator (sanitize + length check all inputs) | SQL injection, malformed payloads — catches obfuscated payloads that bypass WAF signature matching |
 | Honeypot detection | Unprotected `/api/secret` that serves fake data + emits ALERT | Logs automated probes that enumerate endpoints |
 | Error handling | Global handler — no stack traces exposed to clients | Information disclosure |
 
@@ -48,6 +48,26 @@ The server emits structured events to a singleton `EventEmitter` (`logBus`) when
 - `[INFO]` — every request with method, path, status
 - `[WARN]` — bad or missing tokens, auth failures
 - `[ALERT]` — rate limit triggers, honeypot probes
+
+---
+
+## Defense in depth
+
+Security here is layered — no single layer is trusted to catch everything.
+
+The SQL injection scenario illustrates this concretely. The payload `; DROP TABLE users; --` is blocked by Render's edge WAF (signature match on a known attack string) before it ever reaches the server. But the more realistic payload `test@example.com' OR '1'='1' --` is disguised inside a valid-looking email — the WAF lets it through because it doesn't match any known signature.
+
+That payload reaches the app, where `express-validator` rejects it because `isEmail()` fails. Attack stopped at the application layer.
+
+If input validation were missing, a real SQL query without parameterization would turn that payload into:
+
+```sql
+SELECT * FROM users WHERE email = 'test@example.com' OR '1'='1' --'
+```
+
+`OR '1'='1'` is always true — every user in the database is returned. Parameterized queries (prepared statements) are the actual defense at the database layer, making user input structurally impossible to interpret as SQL regardless of what it contains.
+
+The takeaway: WAFs block known, unsophisticated attacks. Application-level validation catches obfuscated ones. Parameterized queries are the final guarantee. Each layer compensates for gaps in the others.
 
 ---
 
