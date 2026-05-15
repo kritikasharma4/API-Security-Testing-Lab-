@@ -15,7 +15,7 @@ export async function sqlInjection(baseURL: string): Promise<ScenarioResult> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      results.push({ payload: payload.email, status: res.status, blocked: res.status === 400 || res.status === 401 || res.status === 429 });
+      results.push({ payload: payload.email, status: res.status, blocked: res.status === 400 || res.status === 401 || res.status === 403 || res.status === 429 });
     } catch {
       results.push({ payload: payload.email, status: 0, blocked: false });
     }
