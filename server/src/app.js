@@ -6,6 +6,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
 const errorHandler = require('./middleware/errorHandler');
+const { globalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -17,6 +18,7 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 app.use(express.json());
+app.use(globalLimiter);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/auth', authRoutes);
