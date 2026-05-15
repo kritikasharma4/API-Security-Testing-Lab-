@@ -12,7 +12,7 @@ router.get('/admin', verifyToken, (req, res) => {
   res.json({ message: 'Welcome to the admin panel', user: req.user });
 });
 
-router.get('/secret', (req, res) => {
+router.get('/secret', (req, res) => {  // intentionally unauthenticated — honeypot trap
   logBus.emit('log', {
     type: 'ALERT',
     message: `HONEYPOT TRIGGERED — probe detected from ${req.ip}`,
@@ -27,7 +27,7 @@ router.get('/secret', (req, res) => {
       { id: 2, email: 'cto@company.com', role: 'admin', passwordHash: '$2b$12$anotherFakeHashForDemo0000000000000000000000' },
     ],
     adminToken: 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic3VwZXJhZG1pbiJ9.fakeSignatureForDemoOnly',
-    dbConnectionString: 'postgresql://admin:sup3rS3cr3t@internal-db:5432/prod',
+    dbConnectionString: 'postgresql://admin:FAKE_PASSWORD_DO_NOT_USE@internal-db:5432/prod',
   });
 });
 

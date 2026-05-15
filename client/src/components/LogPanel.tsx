@@ -24,7 +24,11 @@ export function LogPanel({ serverURL, active }: LogPanelProps) {
   const esRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    if (active && !esRef.current) {
+    if (esRef.current) {
+      esRef.current.close();
+      esRef.current = null;
+    }
+    if (active) {
       const es = new EventSource(`${serverURL}/logs/stream`);
       esRef.current = es;
       es.onmessage = (e) => {
@@ -33,10 +37,9 @@ export function LogPanel({ serverURL, active }: LogPanelProps) {
           setLogs(prev => [...prev.slice(-99), event]);
         } catch {}
       };
-    }
-    if (!active && esRef.current) {
-      esRef.current.close();
-      esRef.current = null;
+      es.onerror = () => {
+        console.warn('[LogPanel] SSE connection error — browser will retry');
+      };
     }
     return () => {
       if (esRef.current) {

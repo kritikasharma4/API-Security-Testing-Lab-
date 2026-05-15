@@ -8,7 +8,7 @@ export async function honeypot(baseURL: string): Promise<ScenarioResult> {
       return {
         name: 'Honeypot',
         pass: true,
-        detail: `Probe detected & logged — fake credentials served (adminToken: ${String(data.adminToken).slice(0, 20)}...)`,
+        detail: `Probe detected & logged — fake credentials served (adminToken: ${typeof data?.adminToken === 'string' ? data.adminToken.slice(0, 20) : '[missing]'}...)`,
       };
     }
     return {
