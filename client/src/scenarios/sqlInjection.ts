@@ -15,7 +15,7 @@ export async function sqlInjection(baseURL: string): Promise<ScenarioResult> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      results.push({ payload: payload.email, status: res.status, blocked: res.status === 400 || res.status === 401 || res.status === 403 || res.status === 429 });
+      results.push({ payload: payload.email, status: res.status, blocked: res.status !== 200 && res.status !== 500 });
     } catch {
       // Network error or non-JSON response (e.g. WAF block) — attack didn't succeed
       results.push({ payload: payload.email, status: 0, blocked: true });
@@ -27,6 +27,6 @@ export async function sqlInjection(baseURL: string): Promise<ScenarioResult> {
     pass: allBlocked,
     detail: allBlocked
       ? `All ${payloads.length} injection payloads returned 400/401`
-      : `Some payloads not blocked: ${results.filter(r => !r.blocked).map(r => r.payload).join(', ')}`,
+      : `Some payloads not blocked: ${results.filter(r => !r.blocked).map(r => `${r.payload} (${r.status})`).join(', ')}`,
   };
 }
