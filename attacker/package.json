@@ -1,0 +1,12 @@
+{
+  "name": "api-security-lab-attacker",
+  "version": "1.0.0",
+  "main": "report.js",
+  "scripts": {
+    "attack": "node report.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
